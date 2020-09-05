@@ -10,12 +10,16 @@ def main():
     parser.add_argument('--steps', '-s', type=int, default=1000, dest='finetune_steps', help="how many steps to finetune (default: 1000)")
     args = parser.parse_args()
 
+    if args.brain_name == "models":
+        raise("You can't name a brain `models` come on dude, be better")
+
     if args.brain_model not in ["124M", "355M"]:
         raise("Unknown model, must be one of: 124M, 355M")
     else:
         model_name = args.brain_model
 
-    model_dir = os.path.join(os.pardir, "jars", args.brain_name, "models")
+    model_dir = os.path.join(os.pardir, "jars", "models")
+    checkpoint_dir = os.path.join(os.pardir, "jars", args.brain_name, "checkpoint")
     if not os.path.isdir(model_dir):
         print("Downloading %s model..." % model_name)
         gpt2.download_gpt2(model_dir=model_dir, model_name=model_name)
@@ -27,8 +31,9 @@ def main():
                   corpus,
                   model_name=model_name,
                   model_dir=model_dir,
-                  steps=args.finetune_steps)
-    gpt2.generate(sess)
+                  checkpoint_dir=checkpoint_dir,
+                  steps=args.finetune_steps,
+                  sample_every=0)
 
 if __name__ == "__main__":
     main()
