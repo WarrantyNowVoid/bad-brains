@@ -26,6 +26,7 @@ def main():
     gpt2.finetune(sess,
                   corpus,
                   model_name=model_name,
+                  model_dir=model_dir,
                   steps=args.finetune_steps)
     gpt2.generate(sess)
 
