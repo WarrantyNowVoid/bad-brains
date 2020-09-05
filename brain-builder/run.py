@@ -17,7 +17,7 @@ def main():
 
     model_dir = os.path.join(os.pardir, "jars", args.brain_name, "models")
     if not os.path.isdir(model_dir):
-        print(f"Downloading {args.brain_model} model...")
+        print("Downloading %s model..." % model_name)
         gpt2.download_gpt2(model_dir=model_dir, model_name=model_name)
 
     corpus = os.path.join(os.pardir, "corpora", "%s.txt" % args.brain_name)
