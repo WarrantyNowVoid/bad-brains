@@ -1,0 +1,2 @@
+tensorflow==1.15.3  # or tensorflow-gpu==1.15.3 if you got one
+gpt2-client
