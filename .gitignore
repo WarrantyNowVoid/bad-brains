@@ -1,5 +1,7 @@
-out/
-corpora/*.txt
+webcrawler/out/
+corpora/*
+!corpora/README.md
+jars/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
