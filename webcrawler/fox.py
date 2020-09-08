@@ -3,16 +3,18 @@ import urllib.parse
 
 import requests
 
-from crawler import Crawler
+from crawler import TranscriptCrawler
 
 BASEURL = "https://www.foxnews.com"
 API_SEARCH_CATEGORY = "fox-news/shows/hannity/transcript"
 API_URL_TEMPLATE = "%(baseurl)s/api/article-search?isCategory=false&isTag=true&isKeyword=false&isFixed=false&isFeedUrl=false&searchSelected=%(category)s&contentTypes=%%7B%%22interactive%%22:false,%%22slideshow%%22:false,%%22video%%22:false,%%22article%%22:true%%7D&size=%(count)s&offset=%(offset)s"
 
 
-class FoxCrawler(Crawler):
+class FoxCrawler(TranscriptCrawler):
 
     def __init__(self):
+        super().__init__()
+
         self.offset = 0
         self.count = 10
 
@@ -41,7 +43,7 @@ class FoxCrawler(Crawler):
 
         for post in post_list:
             post_cat = post['category']['name']
-            if post_cat in ["TRANSCRIPT", "HANNITY"]:
+            if post_cat in ["TRANSCRIPT"]:
                 post_url = BASEURL + post['url']
 
                 resp = requests.get(post_url)

@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 
-from crawler import Crawler
+from crawler import TranscriptCrawler
 
 BASEURL = "http://www.msnbc.com"
 TRANSCRIPT_PATH = "/transcripts/rachel-maddow-show/"
@@ -13,9 +13,11 @@ END_MONTH = 9
 END_YEAR = 2008
 
 
-class MsnbcCrawler(Crawler):
+class MsnbcCrawler(TranscriptCrawler):
 
     def __init__(self):
+        super().__init__()
+        
         self.month = START_MONTH
         self.year = START_YEAR
 

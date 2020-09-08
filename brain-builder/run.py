@@ -5,29 +5,38 @@ import datetime
 import tarfile
 import glob
 
+import ray
+
 import gpt_2_simple as gpt2
+from gpt_2_keyword_generation.keyword_encode import encode_keywords
+
+ray.init(object_store_memory=100 * 1000000,
+         redis_max_memory=100 * 1000000)
 
 JARS_DIR = os.path.join(os.pardir, "jars")
+BRAINFILE = os.path.join(JARS_DIR, "brains.json")
 
 def read_brain_conf():
     global BRAINS_LIST
-    with open(os.path.join(JARS_DIR, "brains.json"), 'r') as bconf:
+    if not os.path.isfile(BRAINFILE):
+        write_brain_conf()
+    with open(BRAINFILE, 'r') as bconf:
         BRAINS_LIST = json.loads(bconf.read())
 
 def write_brain_conf():
-    with open(os.path.join(JARS_DIR, "brains.json"), 'w') as bconf:
+    with open(BRAINFILE, 'w') as bconf:
         bconf.write(json.dumps(BRAINS_LIST))
 
 def main():
     parser = argparse.ArgumentParser(description="Create a terrible GPT-2 brain")
-    parser.add_argument('brain_name', help="name of the brain to build, expects a matching .txt file in corpora/ if finetuning")
+    parser.add_argument('brain_name', help="name of the brain to build, expects a matching .csv file in corpora/ if finetuning")
     parser.add_argument('--model', '-m', default='355M', dest='brain_model', help="which GPT-2 model to use, one of: 124M, 355M (default)")
     parser.add_argument('--steps', '-s', type=int, default=1000, dest='finetune_steps', help="how many steps to finetune (default: 1000)")
     parser.add_argument('--unpack', '-u', default=False, help="path to .tgz existing checkpoint to unpack instead of creating new")
     args = parser.parse_args()
 
-    if args.brain_name == "models":
-        raise ValueError("You can't name a brain `models` come on dude, be better")
+    if args.brain_name.lower() in ["models", "tokenizers"]:
+        raise ValueError("You can't name a brain `%s` come on dude, be better" % args.brain_name)
 
     if args.brain_model not in ["124M", "355M"]:
         raise ValueError("Unknown model, must be one of: 124M, 355M")
@@ -67,18 +76,27 @@ def main():
             else:
                 raise ValueError("Not a valid tar file: %s" % args.unpack)
         else:
+            corpora_path = os.path.join(os.pardir, "corpora")
+            csv_corpus = os.path.join(corpora_path, "%s.csv" % args.brain_name)
+            encoded_corpus = os.path.join(corpora_path, "%s-encoded.txt" % args.brain_name)
+
+            encode_keywords(csv_path=csv_corpus,
+                out_path=encoded_corpus,
+                category_field='speaker',
+                body_field='text',
+                keyword_gen='text',
+                max_keywords=5) 
+
             model_dir = os.path.join(JARS_DIR, "models")
             checkpoint_dir = os.path.join(JARS_DIR, args.brain_name, "checkpoint")
             if not os.path.isdir(model_dir):
                 print("Downloading %s model..." % model_name)
                 gpt2.download_gpt2(model_dir=model_dir, model_name=model_name)
 
-            corpus = os.path.join(os.pardir, "corpora", "%s.txt" % args.brain_name)
-
             print("Finetuning %s..." % args.brain_name)
             sess = gpt2.start_tf_sess()
             gpt2.finetune(sess,
-                          corpus,
+                          encoded_corpus,
                           model_name=model_name,
                           model_dir=model_dir,
                           checkpoint_dir=checkpoint_dir,
