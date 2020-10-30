@@ -80,12 +80,13 @@ def main():
             csv_corpus = os.path.join(corpora_path, "%s.csv" % args.brain_name)
             encoded_corpus = os.path.join(corpora_path, "%s-encoded.txt" % args.brain_name)
 
-            encode_keywords(csv_path=csv_corpus,
-                out_path=encoded_corpus,
-                category_field='speaker',
-                body_field='text',
-                keyword_gen='text',
-                max_keywords=5) 
+            if not os.path.isfile(encoded_corpus):
+                print("Keyword encoding csv corpus...")
+                encode_keywords(csv_path=csv_corpus,
+                    out_path=encoded_corpus,
+                    title_field='speaker',
+                    body_field='text',
+                    keyword_gen='text') 
 
             model_dir = os.path.join(JARS_DIR, "models")
             checkpoint_dir = os.path.join(JARS_DIR, args.brain_name, "checkpoint")
@@ -100,8 +101,7 @@ def main():
                           model_name=model_name,
                           model_dir=model_dir,
                           checkpoint_dir=checkpoint_dir,
-                          steps=args.finetune_steps,
-                          sample_every=0)
+                          steps=args.finetune_steps)
             finetuned = args.finetune_steps
 
         BRAINS_LIST[args.brain_name]["ready"] = int(finetuned) > 0
